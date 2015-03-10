@@ -20,7 +20,7 @@ func setup() {
 	server = httptest.NewServer(mux)
 
 	// github client configured to use test server
-	client = NewClient()
+	client = NewClient(nil)
 	parsed, _ := url.Parse(server.URL)
 	client.BaseURI = parsed.String() + "/"
 }

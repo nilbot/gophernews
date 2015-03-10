@@ -11,9 +11,10 @@ import (
 // create data structures
 
 type Client struct {
-	BaseURI string
-	Version string
-	Suffix  string
+	BaseURI    string
+	Version    string
+	Suffix     string
+	HTTPClient *http.Client
 }
 
 // All the struct definitions can be generated automatically using the example JSON provided by the actual API endpoints corresponding to the test cases
@@ -32,11 +33,15 @@ type Client struct {
 //go:generate gojson -o part.go -name "Part" -pkg "gophernews" -input json/160705.json
 
 // Initializes and returns an API client
-func NewClient() *Client {
+func NewClient(HTTPClient *http.Client) *Client {
+	if HTTPClient == nil {
+		HTTPClient = http.DefaultClient
+	}
 	var c Client
 	c.BaseURI = "https://hacker-news.firebaseio.com/"
 	c.Version = "v0"
 	c.Suffix = ".json"
+	c.HTTPClient = HTTPClient
 	return &c
 }
 
@@ -203,7 +208,7 @@ func (c *Client) GetChanges() (Changes, error) {
 }
 
 func (c *Client) MakeHTTPRequest(url string) ([]byte, error) {
-	response, err := http.Get(url)
+	response, err := c.HTTPClient.Get(url)
 	if err != nil {
 		return nil, err
 	}
@@ -276,7 +281,7 @@ func (i item) ToPart() Part {
 }
 
 func main() {
-	client := NewClient()
+	client := NewClient(nil)
 
 	// README
 	s, err := client.GetStory(8412605) //=> Actual Story
