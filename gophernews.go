@@ -65,6 +65,19 @@ func (c *Client) GetComment(id int) (Comment, error) {
 	return comment, nil
 }
 
+// Comments returns a slice of comments made under the story
+func (s Story) Comments(cl *Client) ([]Comment, error) {
+	var res []Comment
+	for _, id := range s.Kids {
+		c, err := cl.GetComment(id)
+		if err != nil {
+			return res, err
+		}
+		res = append(res, c)
+	}
+	return res, nil
+}
+
 // GetPoll makes an API request and puts response into a Poll struct
 func (c *Client) GetPoll(id int) (Poll, error) {
 	item, err := c.getItem(id)
