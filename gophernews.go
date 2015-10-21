@@ -10,26 +10,12 @@ import (
 
 // create data structures
 
+// Client type
 type Client struct {
 	BaseURI string
 	Version string
 	Suffix  string
 }
-
-// All the struct definitions can be generated automatically using the example JSON provided by the actual API endpoints corresponding to the test cases
-// gojson can be installed with `go get github.com/ChimeraCoder/gojson`
-
-//go:generate gojson -o user.go -name "User" -pkg "gophernews" -input json/chimeracoder.json
-
-//go:generate gojson -o changes.go -name "Changes" -pkg "gophernews" -input json/updates.json
-
-//go:generate gojson -o comment.go -name "Comment" -pkg "gophernews" -input json/2921983.json
-
-//go:generate gojson -o poll.go -name "Poll" -pkg "gophernews" -input json/126809.json
-
-//go:generate gojson -o story.go -name "Story" -pkg "gophernews" -input json/8863.json
-
-//go:generate gojson -o part.go -name "Part" -pkg "gophernews" -input json/160705.json
 
 // Initializes and returns an API client
 func NewClient() *Client {
@@ -40,9 +26,9 @@ func NewClient() *Client {
 	return &c
 }
 
-// Makes an API request and puts response into a Story struct
+// GetStory makes an API request and puts response into a Story struct
 func (c *Client) GetStory(id int) (Story, error) {
-	item, err := c.GetItem(id)
+	item, err := c.getItem(id)
 
 	if err != nil {
 		return Story{}, err
@@ -52,15 +38,14 @@ func (c *Client) GetStory(id int) (Story, error) {
 		emptyStory := Story{}
 		return emptyStory, fmt.Errorf("Called GetStory on ID #%v which is not a _story_. "+
 			"Item is of type _%v_.", id, item.Type)
-	} else {
-		story := item.ToStory()
-		return story, nil
 	}
+	story := item.ToStory()
+	return story, nil
 }
 
-// Makes an API request and puts response into a Comment struct
+// GetComment makes an API request and puts response into a Comment struct
 func (c *Client) GetComment(id int) (Comment, error) {
-	item, err := c.GetItem(id)
+	item, err := c.getItem(id)
 
 	if err != nil {
 		return Comment{}, err
@@ -70,15 +55,14 @@ func (c *Client) GetComment(id int) (Comment, error) {
 		emptyComment := Comment{}
 		return emptyComment, fmt.Errorf("Called GetComment on ID #%v which is not a _comment_. "+
 			"Item is of type _%v_.", id, item.Type)
-	} else {
-		comment := item.ToComment()
-		return comment, nil
 	}
+	comment := item.ToComment()
+	return comment, nil
 }
 
-// Makes an API request and puts response into a Poll struct
+// GetPoll makes an API request and puts response into a Poll struct
 func (c *Client) GetPoll(id int) (Poll, error) {
-	item, err := c.GetItem(id)
+	item, err := c.getItem(id)
 
 	if err != nil {
 		return Poll{}, err
@@ -88,15 +72,14 @@ func (c *Client) GetPoll(id int) (Poll, error) {
 		emptyPoll := Poll{}
 		return emptyPoll, fmt.Errorf("Called GetPoll on ID #%v which is not a _poll_. "+
 			"Item is of type _%v_.", id, item.Type)
-	} else {
-		poll := item.ToPoll()
-		return poll, nil
 	}
+	poll := item.ToPoll()
+	return poll, nil
 }
 
-// Makes an API request and puts response into a Part struct
+// GetPart makes an API request and puts response into a Part struct
 func (c *Client) GetPart(id int) (Part, error) {
-	item, err := c.GetItem(id)
+	item, err := c.getItem(id)
 
 	if err != nil {
 		return Part{}, err
@@ -106,13 +89,12 @@ func (c *Client) GetPart(id int) (Part, error) {
 		emptyPart := Part{}
 		return emptyPart, fmt.Errorf("Called GetPart on ID #%v which is not a _part_. "+
 			"Item is of type _%v_.", id, item.Type)
-	} else {
-		part := item.ToPart()
-		return part, nil
 	}
+	part := item.ToPart()
+	return part, nil
 }
 
-// Makes an API request and puts response into a User struct
+// GetUser makes an API request and puts response into a User struct
 func (c *Client) GetUser(id string) (User, error) {
 	// TODO - refactor URL call into separate method
 	url := c.BaseURI + c.Version + "/user/" + id + c.Suffix
@@ -133,9 +115,9 @@ func (c *Client) GetUser(id string) (User, error) {
 	return u, nil
 }
 
-// Makes an API request and puts response into a item struct
+// getItem makes an API request and puts response into a item struct
 // items are then converted into Stories, Comments, Polls, and Parts (of polls)
-func (c *Client) GetItem(id int) (item, error) {
+func (c *Client) getItem(id int) (item, error) {
 	url := c.BaseURI + c.Version + "/item/" + strconv.Itoa(id) + c.Suffix
 
 	var i map[string]interface{}
@@ -154,7 +136,8 @@ func (c *Client) GetItem(id int) (item, error) {
 	return i, err
 }
 
-func (c *Client) GetTop100() ([]int, error) {
+// GetTopStories makes an API request on top stories and fill the array of id
+func (c *Client) GetTopStories() ([]int, error) {
 	url := c.BaseURI + c.Version + "/topstories" + c.Suffix
 
 	body, err := c.MakeHTTPRequest(url)
@@ -173,23 +156,25 @@ func (c *Client) GetTop100() ([]int, error) {
 	return top100, nil
 }
 
+// GetMaxItem makes an API request and return the Item with max ID
 func (c *Client) GetMaxItem() (Item, error) {
 	url := c.BaseURI + c.Version + "/maxitem" + c.Suffix
 
 	body, err := c.MakeHTTPRequest(url)
 
-	var maxItemId int
+	var maxItemID int
 
-	err = json.Unmarshal(body, &maxItemId)
+	err = json.Unmarshal(body, &maxItemID)
 	if err != nil {
 		return item{}, err
 	}
 
-	maxItem, err := c.GetItem(maxItemId)
+	maxItem, err := c.getItem(maxItemID)
 
 	return maxItem, err
 }
 
+// GetChanges makes an API request and return a Changes type
 func (c *Client) GetChanges() (Changes, error) {
 	url := c.BaseURI + c.Version + "/updates" + c.Suffix
 
@@ -202,6 +187,7 @@ func (c *Client) GetChanges() (Changes, error) {
 	return changes, err
 }
 
+// MakeHTTPRequest wraps a http.Get and return the byte slice
 func (c *Client) MakeHTTPRequest(url string) ([]byte, error) {
 	response, err := http.Get(url)
 	if err != nil {
