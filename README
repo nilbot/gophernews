@@ -1,5 +1,5 @@
 # GopherNews
-gophernews is a Go library for accessing the HackerNews API. 
+gophernews is a Go library for accessing the HackerNews API.
 
 ## Usage
 ```go
@@ -8,7 +8,7 @@ import(
 )
 ```
 
-To use gophernews, first construct a new HackerNews API client, then use the various methods to access different parts of the API. 
+To use gophernews, first construct a new HackerNews API client, then use the various methods to access different parts of the API.
 
 For example, to see the IDs of all the posts ever submitted by Paul Graham:
 
@@ -18,7 +18,7 @@ user, err := client.GetUser("pg")
 fmt.Println(user.Submitted)
 ```
 
-In the above example, "pg" is the ID (username) of the user. 
+In the above example, "pg" is the ID (username) of the user.
 
 Other accessor methods include:
 
@@ -30,7 +30,7 @@ part, err := client.GetPart(160705) //=> Returns a Part struct
 ```
 
 ## Special Methods
-The HackerNews API also has a few special methods. 
+The HackerNews API also has a few special methods.
 
 `client.GetTop100()` will return the IDs of the top 100 stories currently trending on Hacker News.
 
@@ -47,9 +47,9 @@ type Changes struct {
 
 ## Data Structure
 ---
-When you make a Get request for one of the above, a struct will be initialized with the API response. 
+When you make a Get request for one of the above, a struct will be initialized with the API response.
 
-Here are the underlying data structues:
+Here are the underlying data structures:
 
 ```go
 type Client struct {
@@ -108,8 +108,6 @@ type User struct {
 ```
 
 ## Next Steps
-This is a quick and dirty implementation of the API. Next steps will involve methods for querying relationships (story.Comments, etc.) and more info using the API (rate limiting, etc.). 
+This is a quick and dirty implementation of the API. Next steps will involve methods for querying relationships (story.Comments, etc.) and more info using the API (rate limiting, etc.).
 
 Contributions welcome! Write tests, implement feature, send PR.
-
-
